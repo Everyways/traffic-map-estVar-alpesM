@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Flux routiers Est Var – Alpes-Maritimes</title>
+  <meta name="description" content="Carte des flux routiers (TMJA), des déplacements domicile-travail et des lignes de transport en commun de l'Est Var et du littoral des Alpes-Maritimes.">
+  <link rel="stylesheet" href="vendor/maplibre-gl.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="map" role="application" aria-label="Carte interactive"></div>
+
+  <button id="panel-toggle" class="panel-toggle" aria-controls="panel" aria-expanded="true">Panneau</button>
+
+  <aside id="panel" class="panel" aria-label="Couches, légende et sources">
+    <header class="panel-head">
+      <h1>Flux routiers · Est Var &amp; Alpes-Maritimes</h1>
+      <p class="sub">Repérer les axes chargés et leur desserte en transports en commun.</p>
+    </header>
+
+    <div id="warning" class="warning" role="note"></div>
+
+    <section>
+      <h2>Couches</h2>
+      <label><input type="checkbox" data-layer="traffic" checked> Trafic par tronçon (TMJA)</label>
+      <label><input type="checkbox" data-layer="heat"> Densité de trafic (heatmap)</label>
+      <label><input type="checkbox" data-layer="points"> Points de comptage CD06</label>
+      <label><input type="checkbox" data-layer="flows"> Flux domicile-travail</label>
+      <label><input type="checkbox" data-layer="transit" checked> Lignes de transport en commun</label>
+      <label><input type="checkbox" data-layer="communes" checked> Contours des communes</label>
+    </section>
+
+    <section id="flows-controls" hidden>
+      <h2>Flux domicile-travail</h2>
+      <label for="flow-threshold">Seuil : <strong id="flow-threshold-value"></strong> actifs</label>
+      <input id="flow-threshold" type="range" min="0" max="7" step="1" value="3">
+      <label><input type="checkbox" id="flow-focus-all" checked> Pays de Fayence : tous les flux, sans seuil</label>
+      <label><input type="checkbox" id="flow-focus-only"> N'afficher que les flux du Pays de Fayence</label>
+      <p class="hint">Les flux de moins de 200 actifs ne sont qu'un ordre de grandeur (sondage INSEE).</p>
+    </section>
+
+    <section id="transit-controls">
+      <h2>Réseaux de transport</h2>
+      <div id="networks"></div>
+    </section>
+
+    <section class="focus">
+      <h2>Pays de Fayence</h2>
+      <div class="btn-row">
+        <button id="zoom-focus" type="button">Zoomer sur le Pays de Fayence</button>
+        <button id="zoom-all" type="button" class="secondary">Vue d'ensemble</button>
+      </div>
+      <div id="focus-summary"></div>
+    </section>
+
+    <section id="fiche-section" hidden>
+      <h2 id="fiche-title">Commune</h2>
+      <div id="fiche"></div>
+    </section>
+
+    <section>
+      <h2>Légende</h2>
+      <div id="legend"></div>
+    </section>
+
+    <section>
+      <h2>Sources et licences</h2>
+      <div id="sources"></div>
+    </section>
+  </aside>
+
+  <script src="vendor/maplibre-gl.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
