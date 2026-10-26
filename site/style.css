@@ -105,5 +105,5 @@ h3 { font-size: 12px; margin: 8px 0 4px; }
     width: auto; max-height: 55vh;
     border-radius: 12px 12px 0 0;
   }
-  .panel-toggle { display: block; left: auto; right: 10px; top: 10px; }
+  .panel-toggle { display: block; left: 10px; top: 10px; }
 }

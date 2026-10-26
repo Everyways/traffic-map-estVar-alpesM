@@ -33,6 +33,7 @@
   });
   map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
   map.addControl(new maplibregl.ScaleControl({ unit: "metric" }), "bottom-right");
+  setupPanel();
 
   const getJSON = (f) => fetch("data/" + f).then((r) => {
     if (!r.ok) throw new Error(f + " : " + r.status);
@@ -118,7 +119,6 @@
     renderSources(d.meta);
     renderFocus(d.focus);
     setupPopups(d.stats);
-    setupPanel();
 
     $("#zoom-focus").onclick = () => {
       map.fitBounds(focusBounds, { padding: 40 });
