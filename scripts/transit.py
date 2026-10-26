@@ -19,7 +19,7 @@ import pandas as pd
 from shapely.geometry import LineString
 from shapely.ops import unary_union
 
-from common import fetch, fetch_json, log, write_geojson
+from common import datagouv_dataset, fetch, fetch_json, log, write_geojson
 from config import CACHE_DIR, CRS_METRIC, GTFS_FEEDS, PEAK_WINDOW, TRANSPORT_API
 from perimeter import load_perimeter
 
@@ -53,13 +53,43 @@ class Gtfs:
         return df
 
 
-def _resources(slug, catalogue):
+def _dataset(slug, catalogue):
+    """Fiche détaillée (avec historique) d'un jeu transport.data.gouv.fr.
+    Repli sur l'identifiant data.gouv.fr quand le slug n'est pas dans le catalogue."""
     ds = next((d for d in catalogue if d.get("slug") == slug), None)
-    if ds is None:
-        return None, []
-    res = [r for r in ds.get("resources", [])
-           if (r.get("format") or "").upper() == "GTFS" and not r.get("is_community_resource")]
-    return ds, res
+    ident = ds.get("datagouv_id") or ds.get("id") if ds else None
+    if ident is None:
+        try:
+            ident = datagouv_dataset(slug)["id"]
+        except Exception as e:  # noqa: BLE001 - jeu absent des deux portails
+            log(f"{slug} : introuvable sur data.gouv.fr ({e})")
+            return None
+    try:
+        return fetch_json(f"{TRANSPORT_API}/{ident}")
+    except RuntimeError as e:
+        log(f"{slug} : fiche transport.data.gouv.fr indisponible ({e})")
+        return None
+
+
+def _gtfs_resources(ds):
+    return [r for r in ds.get("resources", [])
+            if (r.get("format") or "").upper() == "GTFS" and r.get("type", "main") == "main"]
+
+
+def _download(ds, r):
+    """GTFS du producteur ; à défaut, dernière copie sauvegardée par transport.data.gouv.fr."""
+    url = r.get("url") or r.get("original_url")
+    try:
+        return fetch(url, suffix=".zip", timeout=90, retries=2), url, None
+    except RuntimeError as e:
+        backups = sorted((h["payload"] for h in ds.get("history", [])
+                          if h.get("resource_id") == r.get("id") and h.get("payload", {}).get("permanent_url")),
+                         key=lambda p: p.get("download_datetime", ""), reverse=True)
+        if not backups:
+            raise
+        b = backups[0]
+        log(f"{url} injoignable ({e}) : copie de sauvegarde du {b['download_datetime'][:10]}")
+        return fetch(b["permanent_url"], suffix=".zip"), b["permanent_url"], b["download_datetime"][:10]
 
 
 def _active_services(g, day):
@@ -209,7 +239,8 @@ def build():
     catalogue = fetch_json(TRANSPORT_API)
     feats, by_commune, meta = [], {}, []
     for slug, network, colour in GTFS_FEEDS:
-        ds, res = _resources(slug, catalogue)
+        ds = _dataset(slug, catalogue)
+        res = _gtfs_resources(ds) if ds else []
         entry = {"reseau": network, "url": f"https://transport.data.gouv.fr/datasets/{slug}"}
         if ds is None or not res:
             log(f"{network} : jeu {slug} introuvable ou sans GTFS")
@@ -221,7 +252,8 @@ def build():
         for r in res:
             url = r.get("url") or r.get("original_url")
             try:
-                f, bc, ref = process_feed(fetch(url, suffix=".zip"), network, colour, per, per_union)
+                path, url, backup = _download(ds, r)
+                f, bc, ref = process_feed(path, network, colour, per, per_union)
             except Exception as e:  # noqa: BLE001 - un GTFS invalide ne bloque pas les autres
                 log(f"{network} : GTFS {url} illisible ({e})")
                 entry["fichiers"].append({"url": url, "erreur": str(e)})
@@ -232,7 +264,7 @@ def build():
                 cur["courses"] += v["courses"]
                 cur["lignes"] = sorted(set(cur["lignes"]) | set(v["lignes"]))
                 cur["trips"] = sorted(set(cur["trips"]) | set(v["trips"]))
-            entry["fichiers"].append({"url": url, "date_ref": ref, "lignes": len(f)})
+            entry["fichiers"].append({"url": url, "date_ref": ref, "lignes": len(f), "sauvegarde_du": backup})
         entry["statut"] = "ok" if any("lignes" in x for x in entry["fichiers"]) else "erreur"
         meta.append(entry)
 
