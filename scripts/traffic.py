@@ -35,6 +35,12 @@ def _num(s):
     return pd.to_numeric(s.astype(str).str.replace(",", ".").str.replace(" ", ""), errors="coerce")
 
 
+def _route_label(text):
+    """'83 D0037' -> 'D37', 'RD 0019' -> 'RD19', 'A0008' -> 'A8'."""
+    t = re.sub(r"^\s*\d{2}\s+", "", str(text or "").strip())
+    return re.sub(r"^([A-Z]+)\s*0*(\d)", r"\1\2", t)
+
+
 def _route_key(text):
     """'RD 6007', 'D6007', 'M 6007', '6007' -> '6007' ; 'RD 2085A' -> '2085A'."""
     if text is None:
@@ -321,6 +327,7 @@ def build():
 
     lines = pd.concat([sections[OUT_COLS + ["geometry"]], rrn, cd83], ignore_index=True)
     lines = gpd.GeoDataFrame(lines, geometry="geometry", crs=CRS_METRIC)
+    lines["route"] = lines["route"].map(_route_label)
     lines["tmja"] = lines["tmja"].round().astype(int)
     lines["annee"] = lines["annee"].astype(int)
     lines["geometry"] = lines.geometry.simplify(10)
@@ -328,6 +335,7 @@ def build():
     write_geojson(lines, "traffic_lines.geojson", props=OUT_COLS)
 
     pts_out = pts.copy()
+    pts_out["route"] = pts_out["route"].map(_route_label)
     pts_out["tmja"] = pts_out["tmja"].round().astype(int)
     pts_out["annee"] = pts_out["annee"].astype(int)
     write_geojson(pts_out, "traffic_points.geojson", props=OUT_COLS + ["raccroche"])
@@ -350,7 +358,7 @@ def build():
     for code, grp in joined.groupby("code"):
         grp = grp.sort_values("tmja", ascending=False)
         by_commune[code] = [{"route": r.route, "tmja": int(r.tmja), "annee": int(r.annee),
-                             "source": r.source} for r in grp.head(10).itertuples()]
+                             "source": r.source} for r in grp.head(40).itertuples()]
     Path(CACHE_DIR / "counts_by_commune.json").write_text(json.dumps(by_commune, ensure_ascii=False))
     return meta
 
