@@ -40,8 +40,9 @@ def main():
     gaps.append("Dracénie : seules les lignes régulières TEDbus publiées en GTFS sont représentées.")
     nl = meta["sources"]["flux"].get("non_localises") or {}
     if nl:
-        gaps.append("Flux domicile-travail non cartographiés (lieu non localisable) : "
-                    + ", ".join(f"{k} ({v})" for k, v in nl.items()))
+        top = sorted(nl.items(), key=lambda kv: -kv[1])[:3]
+        gaps.append(f"Flux domicile-travail vers l'étranger hors Monaco non cartographiés : "
+                    f"{sum(nl.values())} actifs (dont " + ", ".join(f"{k} {v}" for k, v in top) + ").")
     write_json(meta, "meta.json")
 
     total = sum(p.stat().st_size for p in DATA_DIR.iterdir() if p.is_file()) / 1e6
