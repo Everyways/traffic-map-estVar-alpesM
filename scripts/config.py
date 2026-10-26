@@ -114,7 +114,7 @@ GTFS_FEEDS = [
     ("trains-zou-en-provence-alpes-cote-dazur", "Zou! Train (TER)", "#1d3557"),
     ("lignes-des-reseaux-transport-zou-provence-alpes-cote-d-azur-express-3-3", "Zou! Express", "#e63946"),
     ("lignes-des-reseaux-transport-zou-provence-alpes-cote-d-azur-proximite-3-3", "Zou! Proximité", "#f4a261"),
-    ("export-quotidien-au-format-gtfs-du-reseau-de-transport-lignes-d-azur", "Lignes d'Azur", "#0077b6"),
+    ("donnees-statiques-et-dynamiques-du-reseau-de-transport-lignes-dazur", "Lignes d'Azur", "#0077b6"),
     ("horaires-theoriques-et-temps-reel-gtfs-gtfs-rt-du-reseau-palmbus-cannes-pays-de-lerins", "Palm Bus", "#2a9d8f"),
     ("arrets-horaires-et-parcours-theoriques-des-bus-du-reseau-des-transports-publics-envibus", "Envibus", "#8338ec"),
     ("lignes-regulieres-de-transports-sillages-en-pays-de-grasse-urbain-et-scolaire", "Sillages", "#c9184a"),

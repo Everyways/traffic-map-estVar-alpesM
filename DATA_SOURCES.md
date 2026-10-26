@@ -68,7 +68,7 @@ exactes de chaque génération sont enregistrés dans [`data/meta.json`](data/me
 | Zou! Train (TER) | `trains-zou-en-provence-alpes-cote-dazur` | Région Sud |
 | Zou! Express | `lignes-des-reseaux-transport-zou-provence-alpes-cote-d-azur-express-3-3` | Région Sud |
 | Zou! Proximité | `lignes-des-reseaux-transport-zou-provence-alpes-cote-d-azur-proximite-3-3` | Région Sud |
-| Lignes d'Azur | `export-quotidien-au-format-gtfs-du-reseau-de-transport-lignes-d-azur` | Métropole Nice Côte d'Azur |
+| Lignes d'Azur | `donnees-statiques-et-dynamiques-du-reseau-de-transport-lignes-dazur` | Métropole Nice Côte d'Azur |
 | Palm Bus | `horaires-theoriques-et-temps-reel-gtfs-gtfs-rt-du-reseau-palmbus-cannes-pays-de-lerins` | CA Cannes Pays de Lérins |
 | Envibus | `arrets-horaires-et-parcours-theoriques-des-bus-du-reseau-des-transports-publics-envibus` | CA Sophia Antipolis |
 | Sillages | `lignes-regulieres-de-transports-sillages-en-pays-de-grasse-urbain-et-scolaire` | CA du Pays de Grasse |
