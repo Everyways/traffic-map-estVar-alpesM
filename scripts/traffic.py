@@ -211,21 +211,23 @@ def load_rrn(perimeter_m):
     gdf = gdf.to_crs(CRS_METRIC)
     gdf = gdf[gdf.intersects(perimeter_m.buffer(500))].copy()
 
-    def col(prefix):
-        for c in gdf.columns:
-            if c.startswith(prefix):
-                return gdf[c]
+    # Les noms de champs du shapefile sont tronqués à 10 caractères (typecompta, anneemesur…).
+    def col(*prefixes, text=False):
+        for prefix in prefixes:
+            for c in gdf.columns:
+                if c.startswith(prefix) and (not text or _num(gdf[c]).isna().all()):
+                    return gdf[c]
         return pd.Series([None] * len(gdf), index=gdf.index)
 
     conc = col("concession").astype(str).str.upper().str.startswith("C")
-    ratio = _num(col("ratio"))
+    ratio = _num(col("ratio", "pctpl"))
     out = gpd.GeoDataFrame({
-        "route": col("route").astype(str),
+        "route": col("route").astype(str).str.replace(r"^([A-Z]+)0*(\d)", r"\1\2", regex=True),
         "tmja": _num(col("tmja")),
-        "annee": _num(col("anneemesure")).fillna(year),
+        "annee": _num(col("anneemes")).fillna(year),
         "source": np.where(conc, f"TMJA RRN {year} (DGITM) – section concédée",
                            f"TMJA RRN {year} (DGITM)"),
-        "type_comptage": col("typecomptage").astype(str).str.lower(),
+        "type_comptage": col("typecomp", text=True).astype(str).str.lower(),
         "pl_pct": ratio,
         "note": np.where(conc, "Autoroute concédée", ""),
     }, geometry=gdf.geometry, crs=CRS_METRIC)
