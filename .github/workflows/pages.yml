@@ -1,0 +1,45 @@
+name: Pages
+
+# Publie site/ et data/ (pré-calculées) sur GitHub Pages.
+on:
+  workflow_dispatch:
+  workflow_call:
+  push:
+    branches: [main]
+    paths:
+      - "site/**"
+      - "data/**"
+      - ".github/workflows/pages.yml"
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - name: Assembler le site
+        run: |
+          mkdir -p _site/data
+          cp -r site/. _site/
+          find data -maxdepth 1 -type f \( -name '*.geojson' -o -name '*.json' \) -exec cp {} _site/data/ \;
+          touch _site/.nojekyll
+          du -sh _site _site/data
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - id: deployment
+        uses: actions/deploy-pages@v4
